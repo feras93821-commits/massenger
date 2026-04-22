@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>منصة المراسلة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f0f2f5;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background-color: #145A32;
+            color: white;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar a {
+            color: #A9DFBF;
+            text-decoration: none;
+            display: block;
+            padding: 15px;
+            transition: 0.3s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1E8449;
+            color: white;
+        }
+
+        .content-wrapper {
+            margin-right: 16.666667%;
+            padding: 30px;
+        }
+
+        .footer {
+            background: white;
+            padding: 15px 0;
+            border-top: 1px solid #dee2e6;
+            margin-right: 16.666667%;
+        }
+
+        /* ستايل جرس الإشعارات */
+        .notification-dropdown {
+            left: 0 !important;
+            right: auto !important;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: static;
+                min-height: auto;
+            }
+
+            .content-wrapper,
+            .footer {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- القائمة الجانبية -->
+
+            <div class="col-md-2 p-0 sidebar d-none d-md-block">
+                <div class="logo-area mb-3">
+                    <img src="{% static 'core/images/logo.jpg' %}" alt="Logo" class="img-fluid mb-2"
+                        style="max-height: 200px; border-radius: 30px;">
+                    <br>
+
+
+
+                </div>
+
+                <a href="{% url 'core:dashboard' %}"
+                    class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-home me-2"></i> الرئيسية
+                </a>
+                <a href="{% url 'core:internal_mail' %}"
+                    class="{% if request.resolver_match.url_name == 'internal_mail' %}active{% endif %}">
+                    <i class="fas fa-envelope me-2"></i> البريد الداخلي
+                </a>
+                <a href="{% url 'core:archive' %}"
+                    class="{% if request.resolver_match.url_name == 'archive' %}active{% endif %}">
+                    <i class="fas fa-archive me-2"></i> أرشيف الملفات
+                </a>
+                <!-- زر الإحصائيات -->
+                <a href="{% url 'core:statistics' %}"
+                    class="{% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">
+                    <i class="fas fa-chart-bar me-2"></i> الإحصائيات
+                </a>
+
+                <a href="{% url 'core:password_change' %}">
+                    <i class="fas fa-key me-2"></i> تغيير كلمة المرور
+                </a>
+
+                <hr class="mx-3">
+                <a href="{% url 'core:logout' %}" class="text-warning">
+                    <i class="fas fa-sign-out-alt me-2"></i> خروج
+                </a>
+            </div>
+
+            <div class="col-md-10 content-wrapper content">
+                <!-- الهيدر العلوي مع جرس الإشعارات -->
+                <div class="d-flex justify-content-end mb-4">
+                    <div class="dropdown">
+                        <button class="btn btn-white shadow-sm position-relative rounded-circle p-2" type="button"
+                            data-bs-toggle="dropdown">
+                            <i class="fas fa-bell text-success fs-5"></i>
+                            <!-- استخدام الدالة الجديدة التي أضفناها في models.py -->
+                            {% if user.get_unread_notifications_count > 0 %}
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ user.get_unread_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu notification-dropdown shadow border-0 p-0">
+                            <li class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">الإشعارات</span>
+                                <a href="{% url 'core:mark_notifications_read' %}"
+                                    class="small text-decoration-none">تحديد كمقروء</a>
+                            </li>
+                            {% for notif in user.notifications.all|slice:":10" %}
+                            <li>
+                                <a class="dropdown-item p-3 border-bottom {% if not notif.is_read %}bg-light{% endif %}"
+                                    href="{{ notif.link|default:'#' }}">
+                                    <p class="mb-1 small text-dark">{{ notif.message }}</p>
+                                    <small class="text-muted">{{ notif.created_at|timesince }}</small>
+                                </a>
+                            </li>
+                            {% empty %}
+                            <li class="p-4 text-center text-muted small">لا توجد إشعارات حالياً.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- رسائل التنبيهات (Messages) -->
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    {% if user.is_authenticated %}
+    <footer class="footer">
+        <div class="container text-center">
+            <span>صمم هذا التطبيق من قبل م.حسن سليم حسن 2025&copy; </span>
+        </div>
+    </footer>
+    {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

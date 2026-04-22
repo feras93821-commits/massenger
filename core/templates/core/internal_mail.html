@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="row">
+    <!-- قائمة الرسائل (يمين) -->
+    <div class="col-md-8">
+        <div class="card shadow border-0 mb-4">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-inbox me-2"></i> البريد الوارد ({{ user.department }})
+            </div>
+            <div class="list-group list-group-flush">
+                {% for msg in received_messages %}
+                <div class="list-group-item list-group-item-action flex-column align-items-start p-3">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1 fw-bold">{{ msg.subject }}</h6>
+                        <small class="text-muted">{{ msg.created_at|date:"d/m H:i" }}</small>
+                    </div>
+                    <p class="mb-1 text-break">{{ msg.body|linebreaksbr }}</p>
+                    <small class="text-success">
+                        <i class="fas fa-user me-1"></i> من: {{ msg.sender.username }} ({{ msg.sender.department }})
+                    </small>
+                </div>
+                {% empty %}
+                <div class="p-4 text-center text-muted">لا توجد رسائل واردة.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card shadow border-0">
+            <div class="card-header bg-light">
+                <i class="fas fa-paper-plane me-2"></i> البريد المرسل
+            </div>
+            <div class="list-group list-group-flush">
+                {% for msg in sent_messages %}
+                <div class="list-group-item p-2">
+                    <div class="d-flex w-100 justify-content-between">
+                        <span class="fw-bold small">{{ msg.subject }}</span>
+                        <small class="text-muted">{{ msg.created_at|date:"d/m" }}</small>
+                    </div>
+                    <small class="text-muted">إلى: {{ msg.recipient_department }}</small>
+                </div>
+                {% empty %}
+                <div class="p-3 text-center small text-muted">لم تقم بإرسال أي رسائل.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- نموذج إرسال رسالة (يسار) -->
+    <div class="col-md-4">
+        <div class="card shadow border-0 sticky-top" style="top: 20px;">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-pen me-2"></i> رسالة جديدة
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small">القسم المستلم</label>
+                        {{ form.recipient_department }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">الموضوع</label>
+                        {{ form.subject }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">نص الرسالة</label>
+                        {{ form.body }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-paper-plane me-2"></i> إرسال
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
